@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Терминал SEVASTOLINK</title>
+<!-- Favicon — логотип терминала -->
+  <link rel="icon" href="https://avatars.mds.yandex.net/i?id=afe5e66e75515e7ac918f691dcecd80b79b76c09-5875773-images-thumbs&n=13" type="image/png">
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Courier New', monospace;
+      color: #0f0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .terminal-container {
+      width: 800px;
+      height: 600px;
+      border: 10px solid #333;
+      border-radius: 5px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .header {
+      background-color: #004000;
+      color: #0f0;
+      padding: 10px;
+      text-align: center;
+      font-size: 16px;
+      border-bottom: 2px solid #0f0;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+      height: 560px;
+      max-height: 560px;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      width: 150px;
+      height: 100%;
+      background-color: #000;
+      border-right: 2px solid #0f0;
+      float: left;
+      padding: 10px;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      color: #0f0;
+      font-size: 14px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      margin: 10px 0;
+      cursor: pointer;
+      padding: 8px;
+      border: 1px solid #0f0;
+      transition: background-color 0.3s;
+    }
+
+    .sidebar li:hover {
+      background-color: #001100;
+    }
+
+    .sidebar li.active {
+      background-color: #002200;
+      border-color: #fff; /* Белая рамка */
+      color: #fff;
+    }
+
+    .main-content {
+      margin-left: 170px;
+      padding: 10px;
+      min-height: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #0f0;
+      background-color: #000;
+      line-height: 1.5;
+    }
+
+    .audio-player {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #0f0;
+      background-color: #000;
+    }
+
+    .button {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #001100;
+      color: #0f0;
+      border: 1px solid #0f0;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+    }
+
+    .button:hover {
+      background-color: #002200;
+    }
+
+    /* Скроллбар */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #000;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background-color: #0f0;
+      border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background-color: #00ff00;
+    }
+
+    /* Загрузка */
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: #0f0;
+      font-size: 20px;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+    }
+
+    .progress-bar {
+      width: 300px;
+      height: 10px;
+      background-color: #000;
+      border: 1px solid #0f0;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background-color: #0f0;
+      transition: width 1s linear;
+    }
+
+    /* Музыкальная кнопка */
+    .music-control {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #000;
+      border: 1px solid #0f0;
+      padding: 5px;
+      color: #0f0;
+      font-size: 12px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Экран загрузки -->
+  <div class="loading" id="loading">
+    <div>SEVASTOLINK</div>
+    <div>AN UP-LINK PRODUCT</div>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div>ICI UP-LINK DATA SYSTEMS</div>
+  </div>
+
+  <!-- Музыкальный контроллер -->
+  <div class="music-control" id="music-toggle">▶️ ВКЛЮЧИТЬ МУЗЫКУ</div>
+
+  <!-- Основной терминал -->
+  <div class="terminal-container">
+    <div class="header">ЛИЧНЫЙ ТЕРМИНАЛ</div>
+    <div class="content">
+      <div class="sidebar">
+        <h3>ПАПКИ</h3>
+        <ul>
+          <li class="active" data-folder="personal">ЛИЧНОЕ</li>
+          <li data-folder="general">ОБЩЕЕ</li>
+          <li data-folder="audio">АУДИО</li>
+          <li data-folder="utils">УТИЛИТЫ</li>
+        </ul>
+      </div>
+      <div class="main-content" id="main-content">
+        <!-- Сообщения появятся здесь -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Аудио для кликов -->
+  <audio id="click-sound" src="https://free-sound-effects.net/mp3/03/free-sound-1674882162.mp3" preload="auto"></audio>
+  <audio id="music" src="https://storage1.lightaudio.ru/dm/399225dd/298bd7dd/Alien%3A%20Isolation%20%E2%80%94%20Main%20Menu.mp3" preload="auto" loop></audio>
+
+  <script>
+    // Звук при клике
+    const clickSound = document.getElementById('click-sound');
+    const music = document.getElementById('music');
+    const musicToggle = document.getElementById('music-toggle');
+
+    // Анимация загрузки
+    const loading = document.getElementById('loading');
+    const progress = document.getElementById('progress');
+
+    let width = 0;
+    const interval = setInterval(() => {
+      width += 1;
+      progress.style.width = width + '%';
+      if (width >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          loading.style.opacity = 0;
+          setTimeout(() => {
+            loading.style.display = 'none';
+          }, 1000);
+        }, 500);
+      }
+    }, 30);
+
+    // Данные для папок
+    const messages = {
+      personal: [
+        {
+          title: "ЗАМОК ОТКЛЮЧЕН",
+          text: "ХЬЮЗ, Я ПОСТАВИЛ МЕХАНИЧЕСКИЙ ЗАМОК НА ДВЕРЬ, КОТОРАЯ ВЕДЕТ НАВЕРХ. НУЖНО РАЗОБРАТЬСЯ, ЧТО ПРОИСХОДИТ, И Я НЕ ХОЧУ, ЧТОБЫ НЕСЧАСТНЫЕ СЛУЧАИ ПОВТОРИЛИСЬ.<br><br>ШЕФ"
+        },
+        {
+          title: "ОБНОВЛЕНИЕ БЕЗОПАСНОСТИ",
+          text: "ВСЕ СОТРУДНИКИ ДОЛЖНЫ ПРОЙТИ ПРОВЕРКУ ДОСТУПА К СИСТЕМЕ. ПОВТОРЯЮ: НЕ ПЫТАЙТЕСЬ ВХОДИТЬ В ЗАПРЕТНЫЕ ЗОНЫ. НАРУШЕНИЕ ПРИВЕДЕТ К АННУЛИРОВАНИЮ ВАШЕГО ДОПУСКА.<br><br>ОТДЕЛ БЕЗОПАСНОСТИ"
+        }
+      ],
+      general: [
+        {
+          title: "НАШ МАНИФЕСТ",
+          text: "<b>\"ЗАВТРА – ВМЕСТЕ\" #1</b><br><br>(ВПЕРВЫЕ ОПУБЛИКОВАНО В \"НОВОСТЯХ \"СИГСОНА\", ФЕВРАЛЬ 2115 ГОДА)<br><br>МЫ НЕ ХОТИМ ПОКАЗЫВАТЬ ВАМ НОВЫЙ МИР – МЫ ХОТИМ ОТКРЫТЬ ЕГО ВМЕСТЕ С ВАМИ! КАЖДАЯ НОВАЯ ТЕХНОЛОГИЯ И КАЖДЫЙ НОВЫЙ НАУЧНЫЙ ПРОЕКТ КОМПАНИИ \"СИГСОН\" ПРЕСЛЕДУЮТ ОДНУ ЦЕЛЬ – ПРИНЕСТИ ПОЛЬЗУ ВАМ.<br><br>МЫ НАДЕЕМСЯ, ВЫ ПРИСОЕДИНЯТЕСЬ К НАМ В ЭТОМ ПУТЕШЕСТВИИ."
+        },
+        {
+          title: "НАША ЗВЕЗДНАЯ КОЛЫБЕЛЬ",
+          text: "2034 ГОД СТАЛ ПЕРЕЛОМНЫМ В НАШЕЙ ИСТОРИИ. ПОСЛЕ ТОГО КАК БЫЛ ОТКРЫТ СПОСОБ ПЕРЕМЕЩЕНИЯ НА СВЕРХСВЕТОВЫХ СКОРОСТЯХ, \"СИГСОН\" (ТОГДА НАЗЫВАВШАЯСЬ \"СИГ И СЫН\") ВСТАЛА НА ПУТЬ УСПЕХА. НАЧАЛАСЬ КОСМИЧЕСКАЯ ГОНКА, И ПОД ЧУТКИМ РУКОВОДСТВОМ НАШЕГО ОСНОВАТЕЛЯ ДЖОЗАЙИ СИГА КОМПАНИЯ ПОКАЗАЛА СЕБЯ ДОСТОЙНЫМ УЧАСТНИКОМ ЭТОГО СОСТАЗАНИЯ.<br><br>\"СИГ И СЫН\" СТРОИЛА КОМПОНЕНТЫ ДЛЯ КОСМИЧЕСКИХ КОРАБЛЕЙ, НА КОТОРЫХ ЧЕЛОВЕЧЕСТВО СМОГЛО ВЫБРАТЬСЯ ЗА ПРЕДЕЛЫ СОЛНЕЧНОЙ СИСТЕМЫ. КАК ИЗВЕСТНО, КОРПОРАЦИЯ \"ВЕЙЛАНД\" НЕ ЖЕЛАЛА ДЕЛИТЬСЯ ТЕХНОЛОГИЯМИ МЕЖЗВЕЗДНЫХ ПЕРЕЛЕТОВ С ДРУГИМИ КОМПАНИЯМИ. НО, К СЧАСТЬЮ, ДЖОЗАЙЯ СИГ ОКАЗАЛСЯ ТАЛАНТЛИВЫМ ИННОВАТОРОМ И СУМЕЛ НАЛАДИТЬ ПРОИЗВОДСТВО НЕОБХОДИМОГО ОБОРУДОВАНИЯ.<br><br>ЕСЛИ БЫ НЕ \"СИГ И СЫН\", НАШЕ НЕБО СЕЙЧАС БЫЛО БЫ СОВСЕМ ДРУГИМ!"
+        }
+      ],
+      audio: [
+        {
+          title: "ПРОШУ, ПОЙМИ",
+          text: "МАРИ, НАДЕЮСЬ, ТЫ ЭТО УСЛЫШИШЬ. Я РЕШИЛ ДОБРАТЬСЯ ДО \"СИГСОН-ТЕЛЕКОМ\". НЕ СТАЛ ТЕБЯ БУДИТЬ, ЧТОБЫ ТЫ НЕ ПЫТАЛАСЬ ОТГОВОРИТЬ МЕНЯ. ПОЙМИ, ЭТО НАША ЕДИНСТВЕННАЯ НАДЕЖДА. КТО-ТО ДОЛЖЕН ВОССТАНОВИТЬ СВЯЗЬ, СООБЩИТЬ ВЛАСТЯМ НА ЗЕМЛЕ, ЧТО ТУТ ПРОИСХОДИТ. НЕ БОЙСЯ, Я ВЕРНУСЬ. Я НЕ ОСТАВЛЮ ВАС С КЛЭР ОДНИХ.",
+          audio: "https://www.soundjay.com/old-computer/sounds/old-computer-1.mp3"
+        }
+      ],
+      utils: [
+        {
+          title: "УТИЛИТА 1",
+          text: "Проверка системы... Ошибок не обнаружено."
+        },
+        {
+          title: "УТИЛИТА 2",
+          text: "Версия ОС: SEVASTOLINK v2.1.7<br>Последнее обновление: 06.09.2115<br>Статус: ОК"
+        }
+      ]
+    };
+
+    // Переключение папок
+    document.querySelectorAll('.sidebar li').forEach(item => {
+      item.addEventListener('click', () => {
+        // Звук при клике
+        clickSound.currentTime = 0;
+        clickSound.play();
+
+        document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
+        item.classList.add('active');
+        const folder = item.getAttribute('data-folder');
+        loadMessages(folder);
+      });
+    });
+
+    // Загрузка сообщений
+    function loadMessages(folder) {
+      const container = document.getElementById('main-content');
+      container.innerHTML = '';
+
+      messages[folder].forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'message';
+        div.innerHTML = `<h3>${msg.title}</h3><p>${msg.text}</p>`;
+        container.appendChild(div);
+
+        if (msg.audio) {
+          const audioPlayer = document.createElement('div');
+          audioPlayer.className = 'audio-player';
+          const audioId = 'audio-' + Math.random().toString(36).substr(2, 9);
+          audioPlayer.innerHTML = `
+            <button class="button" onclick="document.getElementById('${audioId}').play()">▶ СЛЫШАТЬ</button>
+            <audio id="${audioId}" src="${msg.audio}" preload="none"></audio>
+          `;
+          container.appendChild(audioPlayer);
+        }
+      });
+    }
+
+    // Звук при клике на кнопки
+    document.querySelectorAll('.button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        clickSound.currentTime = 0;
+        clickSound.play();
+      });
+    });
+
+    // Контроль музыки
+    musicToggle.addEventListener('click', () => {
+      if (music.paused) {
+        music.play();
+        musicToggle.textContent = '⏸️ ВЫКЛЮЧИТЬ МУЗЫКУ';
+      } else {
+        music.pause();
+        musicToggle.textContent = '▶️ ВКЛЮЧИТЬ МУЗЫКУ';
+      }
+    });
+
+    // Загружаем "Личное" по умолчанию
+    loadMessages('personal');
+  </script>
+</body>
+</html>
