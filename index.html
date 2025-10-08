@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Терминал SEVASTOLINK</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="https://avatars.mds.yandex.net/i?id=c0540f37134d8918e0e227092f816c6b-5700446-images-thumbs&n=13" type="image/png">
+
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background-color: #000;
+      font-family: 'Courier New', monospace;
+      color: #0f0;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    /* Анимированный фон "Матрица" */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: radial-gradient(circle at center, transparent 30%, rgba(0, 0, 0, 0.9) 100%);
+      pointer-events: none;
+      z-index: -1;
+    }
+
+    .matrix-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      z-index: -2;
+    }
+
+    .matrix-column {
+      position: absolute;
+      color: rgba(0, 255, 0, 0.6);
+      font-size: 14px;
+      font-family: monospace;
+      text-shadow: 0 0 5px #0f0;
+      animation: fall linear infinite;
+    }
+
+    @keyframes fall {
+      0% { transform: translateY(-100vh); opacity: 0; }
+      10% { opacity: 1; }
+      90% { opacity: 1; }
+      100% { transform: translateY(100vh); opacity: 0; }
+    }
+
+    .terminal-container {
+      width: 800px;
+      height: 600px;
+      border: 10px solid #333;
+      border-radius: 5px;
+      box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+      position: relative;
+      overflow: hidden;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      z-index: 10;
+    }
+
+    .header {
+      background-color: #004000;
+      color: #0f0;
+      padding: 10px;
+      text-align: center;
+      font-size: 16px;
+      border-bottom: 2px solid #0f0;
+    }
+
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      position: relative;
+      height: 560px;
+      max-height: 560px;
+      overflow-x: hidden;
+    }
+
+    .sidebar {
+      width: 180px;
+      height: 100%;
+      background-color: #000;
+      border-right: 2px solid #0f0;
+      float: left;
+      padding: 10px;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      margin-top: 0;
+      color: #0f0;
+      font-size: 14px;
+    }
+
+    .sidebar ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .sidebar li {
+      margin: 8px 0;
+      cursor: pointer;
+      padding: 6px;
+      border: 1px solid #0f0;
+      transition: background-color 0.3s;
+      font-size: 12px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .sidebar li:hover {
+      background-color: #001100;
+    }
+
+    .sidebar li.active {
+      background-color: #002200;
+      border-color: #fff;
+      color: #fff;
+    }
+
+    .main-content {
+      margin-left: 200px;
+      padding: 10px;
+      min-height: 100%;
+      height: 100%;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .message {
+      margin: 10px 0;
+      padding: 10px;
+      border: 1px solid #0f0;
+      background-color: #000;
+      line-height: 1.5;
+    }
+
+    .content img {
+      max-width: 300px;
+      height: auto;
+      border: 1px solid #0f0;
+      margin: 10px auto;
+      display: block;
+    }
+
+    /* Главная — три фото */
+    .photo-row {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 15px 0;
+    }
+    .photo-row img {
+      width: 120px;
+      height: 120px;
+      object-fit: cover;
+      border: 1px solid #0f0;
+    }
+
+    /* Смысл IT — два фото */
+    .photo-row-it {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 15px 0;
+    }
+    .photo-row-it img {
+      max-width: 280px;
+      height: auto;
+      border: 1px solid #0f0;
+    }
+
+    /* Страдания — три фото */
+    .photo-row-suffering {
+      display: flex;
+      gap: 8px;
+      justify-content: center;
+      margin: 15px 0;
+      flex-wrap: wrap;
+    }
+    .photo-row-suffering img {
+      max-width: 200px;
+      height: auto;
+      border: 1px solid #0f0;
+    }
+
+    /* Игровое поле */
+    #gameCanvas {
+      display: block;
+      margin: 10px auto;
+      border: 1px solid #0f0;
+      background: #000;
+      font-family: 'Courier New', monospace;
+      color: #0f0;
+      white-space: pre;
+      line-height: 1;
+      font-size: 16px;
+      padding: 8px;
+    }
+
+    .button {
+      margin: 10px 0;
+      padding: 10px;
+      background-color: #001100;
+      color: #0f0;
+      border: 1px solid #0f0;
+      cursor: pointer;
+      font-family: 'Courier New', monospace;
+    }
+
+    .button:hover {
+      background-color: #002200;
+    }
+
+    /* Скроллбар */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background-color: #0f0; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background-color: #00ff00; }
+
+    /* Загрузка */
+    .loading {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #000;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      color: #0f0;
+      font-size: 20px;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+    }
+
+    .progress-bar {
+      width: 300px;
+      height: 10px;
+      background-color: #000;
+      border: 1px solid #0f0;
+      margin-top: 20px;
+      overflow: hidden;
+    }
+
+    .progress {
+      width: 0%;
+      height: 100%;
+      background-color: #0f0;
+      transition: width 1s linear;
+    }
+
+    /* Музыкальная панель */
+    .music-panel {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      background-color: #000;
+      border: 1px solid #0f0;
+      padding: 8px;
+      color: #0f0;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 20;
+    }
+
+    .volume-slider {
+      width: 80px;
+      accent-color: #0f0;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="matrix-bg" id="matrix-bg"></div>
+
+  <div class="loading" id="loading">
+    <div>SEVASTOLINK</div>
+    <div>AN UP-LINK PRODUCT</div>
+    <div class="progress-bar">
+      <div class="progress" id="progress"></div>
+    </div>
+    <div>ICI UP-LINK DATA SYSTEMS</div>
+  </div>
+
+  <div class="music-panel">
+    <button id="music-toggle">▶️ ВКЛЮЧИТЬ МУЗЫКУ</button>
+    <input type="range" class="volume-slider" id="volume-slider" min="0" max="1" step="0.01" value="1">
+  </div>
+
+  <div class="terminal-container">
+    <div class="header">ЛИЧНЫЙ ТЕРМИНАЛ</div>
+    <div class="content">
+      <div class="sidebar">
+        <h3>МЕНЮ</h3>
+        <ul id="menuList">
+          <li class="active" data-folder="main">Главная</li>
+          <li data-folder="trips">Поездки</li>
+          <li data-folder="books">Книги</li>
+          <li data-folder="movies">Фильмы</li>
+          <li data-folder="games">Игры</li>
+          <li data-folder="series">Сериалы</li>
+          <li data-folder="it">Смысл IT</li>
+          <li data-folder="suffering">Страдания</li>
+          <li data-folder="achievements">Ачивки</li>
+          <li data-folder="pacman">Игра</li>
+          <!-- Секретная папка будет добавлена сюда динамически -->
+        </ul>
+      </div>
+      <div class="main-content" id="main-content"></div>
+    </div>
+  </div>
+
+  <audio id="click-sound" src="    https://free-sound-effects.net/mp3/03/free-sound-1674882162.mp3    " preload="auto"></audio>
+  <audio id="music" src="https://storage1.lightaudio.ru/dm/399225dd/298bd7dd/Alien%3A%20Isolation%20%E2%80%94%20Main%20Menu.mp3    " preload="auto" loop></audio>
+
+  <script>
+    // Фон "Матрица"
+    const matrixBg = document.getElementById('matrix-bg');
+    const symbols = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const fontSize = 14;
+    const columns = Math.floor(window.innerWidth / fontSize);
+    for (let i = 0; i < columns; i++) {
+      const col = document.createElement('div');
+      col.classList.add('matrix-column');
+      col.style.left = i * fontSize + 'px';
+      col.style.animationDuration = (Math.random() * 5 + 3) + 's';
+      col.style.animationDelay = (Math.random() * 5) + 's';
+      let content = '';
+      const lines = Math.floor(Math.random() * 20) + 10;
+      for (let j = 0; j < lines; j++) {
+        content += symbols.charAt(Math.floor(Math.random() * symbols.length)) + '<br>';
+      }
+      col.innerHTML = content;
+      matrixBg.appendChild(col);
+    }
+
+    // Аудио
+    const clickSound = document.getElementById('click-sound');
+    const music = document.getElementById('music');
+    const musicToggle = document.getElementById('music-toggle');
+    const volumeSlider = document.getElementById('volume-slider');
+    volumeSlider.addEventListener('input', () => music.volume = volumeSlider.value);
+
+    // Загрузка
+    const loading = document.getElementById('loading');
+    const progress = document.getElementById('progress');
+    let width = 0;
+    const interval = setInterval(() => {
+      width += 1;
+      progress.style.width = width + '%';
+      if (width >= 100) {
+        clearInterval(interval);
+        setTimeout(() => {
+          loading.style.opacity = 0;
+          setTimeout(() => loading.style.display = 'none', 1000);
+        }, 500);
+      }
+    }, 30);
+
+    // Данные
+    const messages = {
+      main: [
+        { image: "https://i.postimg.cc/1zkyt20Y/photo-2025-09-08-22-01-22.jpg" },
+        { image: "https://i.postimg.cc/XJBX19Lt/photo-2025-09-08-22-01-33.jpg" },
+        { image: "https://i.postimg.cc/P56xtSFB/photo-2025-09-08-22-01-28.jpg" },
+        { title: "Приветствие", text: "<div style='text-align: center; font-size: 14px; line-height: 1.8;'>Я Низов Денис Романович - Студент 3-го курса, группы ИСП-23, добро пожаловать в мой личный терминал!<br>Он посвящен теме: как я провел лето 2025 года.</div>" }
+      ],
+      trips: [
+        { title: "Поездки", text: "ЛЕТО 2025 — ПОЕЗДКА НА РОДИНУ<br><br>Поехал в Рязанскую область, посёлок Милославское — место, где всё началось.<br>Свежий воздух, тишина, звёзды по ночам — и много домашней работы: огород, уборка, ремонт.<br>Отдых получился... активным. Но душа отдохнула." },
+        { image: "https://i.postimg.cc/KYDKWM59/miloslavskij-rajon-znak.jpg" }
+      ],
+      books: [
+        { title: "Книги", text: "ПРОЧИТАНО: \"РОБИНЗОН КРУЗО\" — ДАНИЭЛЬ ДЕФО<br><br>Приключенческий роман, основанный на реальной истории моряка Александра Селькирка, прожившего 4 года на необитаемом острове.<br><br>Темы: выживание, одиночество, вера, самосовершенствование.<br>Философия: человек способен преодолеть всё — даже самого себя.<br><br>Рекомендую каждому, кто любит приключения — и хочет понять, на что способен человек в изоляции." },
+        { image: "https://i.postimg.cc/pdRrKdtz/image.jpg" }
+      ],
+      movies: [
+        { title: "Фильмы", text: "ПРОСМОТРЕНО: \"ДЕВЯТЬ ЖИЗНЕЙ\"<br><br>Бизнесмен Том Бренд — погружён в работу, забыл о семье. Дочь мечтает о коте. В последний момент он покупает питомца — и попадает в кому. Очнулся... в теле кота.<br><br>Чтобы вернуться — должен доказать, что любит семью.<br><br>Фильм — лёгкая комедия с глубокой темой: ценность человеческих отношений. Смешно, трогательно, поучительно." },
+        { image: "https://i.postimg.cc/g0zcnBvT/Nine-Lives-film-2016.jpg" }
+      ],
+      games: [
+        { title: "Игры", text: "ПРОЙДЕНО: ALIEN: ISOLATION<br><br>Главная героиня — Аманда Рипли, дочь Эллен Рипли. Расследует исчезновение матери на станции \"Севастополь\".<br><br>Станция — в хаосе. Корпоративная халатность. И... ксеноморф.<br><br>Жанры: выживание, хоррор, фэнтези.<br>Атмосфера: напряжение, страх, одиночество.<br><br>Рекомендую всем, кто любит погружение, реализм и ужасы. Записал несколько роликов — скоро выложу." },
+        { image: "https://i.postimg.cc/0yxK0nYn/riyaz-2023-fig5.jpg" }
+      ],
+      series: [
+        { title: "Сериалы", text: "ПРОСМОТРЕНО: \"ВО ВСЕ ТЯЖКИЕ\"<br><br>Главный герой — Уолтер Уайт, школьный учитель химии. Диагноз: рак лёгких.<br>Чтобы обеспечить семью после смерти, он начинает производить метамфетамин.<br><br>Партнёр — бывший ученик Джесси Пинкман, уже имеющий опыт в этом деле.<br><br>Что впечатлило:<br>— Непредсказуемость сюжета<br>— Неожиданные повороты<br>— Глубокое развитие персонажей и их личностные трансформации<br><br>Один из самых сильных сериалов о моральном выборе и последствиях." },
+        { image: "https://i.postimg.cc/R0jBcM8k/breaking-bad-desert-promo-h7l0qw7e5273j17s.jpg" }
+      ],
+      it: [
+        { title: "Смысл IT", text: "ООО ТПК \"АРГУС-НВ\"<br><br>Летом прошёл собеседование на предприятии ООО ТПК \"АРГУС-НВ\".<br>Узнал немного о компании, её направлениях и технологиях.<br><br>Позже состоялся звонок с программистом — длился около часа.<br>Обсудили мой предыдущий проект, возможные направления развития и то, чем стоит заниматься дальше.<br><br>Открыл для себя много нового! 😁" },
+        { image1: "https://i.postimg.cc/Pq20fdzv/image.jpg", image2: "https://i.postimg.cc/KjgW5BXD/photo-2025-10-08-22-25-33.jpg" }
+      ],
+      suffering: [
+        { title: "Страдания", text: "ВСЁ В ПОРЯДКЕ...<br><br>Ну, почти.<br>Кот устроил мне бессонницу — спать не давал ни ночью, ни днём.<br>Поэтому было принято... гуманное решение:<br>его немножко искупали. 🙀😈<br><br>Теперь он сухой. И обиженный." },
+        { image1: "https://i.postimg.cc/Jz64vCDJ/photo-2025-10-04-18-16-52.jpg", image2: "https://i.postimg.cc/dQ2QvyZ3/photo-2025-10-04-18-16-53.jpg", image3: "https://i.postimg.cc/zXpJHYjv/photo-2025-10-04-18-19-18.jpg" }
+      ],
+      achievements: [
+        { title: "Ачивки", text: "ПРОЙДЕН КУРС: C++ НА SOLOLEARN<br><br>Завершил обучение по языку C++ — одному из самых мощных и интересных языков программирования.<br><br>Углубил знания в:<br>— Указателях и памяти<br>— ООП и классах<br>— Стандартной библиотеке<br><br>C++ — это не просто код. Это дисциплина мышления." },
+        { image: "https://i.postimg.cc/wx0PhqSD/photo-2025-08-20-21-49-58.jpg" }
+      ],
+      pacman: [], // Игра рендерится отдельно
+      secret: [
+        {
+          title: "Доступ",
+          text: "ПОЗДРАВЛЯЮ! 🎉<br><br>Вы прошли игру и получили доступ к секретной зоне.<br><br>Благодарю вас за то, что прочитали мой терминал и проявили интерес к моему лету 2025.<br><br>Вот мои ссылки:<br><br>📺 <a href='https://www.youtube.com/@Manicom666' target='_blank' style='color:#0f0;text-decoration:underline;'>YouTube: @Manicom666</a><br>💻 <a href='https://github.com/Manicom666' target='_blank' style='color:#0f0;text-decoration:underline;'>GitHub: Manicom666</a>"
+        }
+      ]
+    };
+
+    let secretUnlocked = false;
+
+    // Переключение папок
+    function setupMenuListeners() {
+      document.querySelectorAll('.sidebar li').forEach(item => {
+        item.addEventListener('click', () => {
+          if (clickSound) {
+            clickSound.currentTime = 0;
+            clickSound.play().catch(e => console.log("Не удалось воспроизвести звук:", e));
+          }
+          document.querySelectorAll('.sidebar li').forEach(el => el.classList.remove('active'));
+          item.classList.add('active');
+          const folder = item.getAttribute('data-folder');
+          loadMessages(folder);
+        });
+      });
+    }
+
+    // Загрузка сообщений
+    function loadMessages(folder) {
+      const container = document.getElementById('main-content');
+      container.innerHTML = '';
+
+      // Если ушли из секретной папки — сброс
+      if (folder !== 'secret') {
+        secretUnlocked = false;
+        // Удаляем секретную папку из меню
+        const secretItem = document.querySelector('li[data-folder="secret"]');
+        if (secretItem) secretItem.remove();
+      }
+
+      if (folder === 'pacman') {
+        renderPacmanGame(container);
+        return;
+      }
+
+      if (messages[folder].length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'message';
+        empty.innerHTML = `<h3>📂 ${itemToTitle(folder)}</h3><p>Содержимое скоро появится...</p>`;
+        container.appendChild(empty);
+      } else {
+        if (folder === 'main') {
+          const photoRow = document.createElement('div');
+          photoRow.className = 'photo-row';
+          messages[folder].forEach(msg => {
+            if (msg.image) {
+              const img = document.createElement('img');
+              img.src = msg.image.trim();
+              photoRow.appendChild(img);
+            }
+          });
+          if (photoRow.children.length > 0) {
+            const photoContainer = document.createElement('div');
+            photoContainer.className = 'message';
+            photoContainer.appendChild(photoRow);
+            container.appendChild(photoContainer);
+          }
+        }
+
+        if (folder === 'it') {
+          messages[folder].forEach(msg => {
+            if (msg.text || msg.title) {
+              const div = document.createElement('div');
+              div.className = 'message';
+              div.innerHTML = `<h3>${msg.title || ''}</h3><p>${msg.text || ''}</p>`;
+              container.appendChild(div);
+            }
+            if (msg.image1 && msg.image2) {
+              const photoRow = document.createElement('div');
+              photoRow.className = 'photo-row-it';
+              const img1 = document.createElement('img');
+              img1.src = msg.image1.trim();
+              const img2 = document.createElement('img');
+              img2.src = msg.image2.trim();
+              photoRow.appendChild(img1);
+              photoRow.appendChild(img2);
+              container.appendChild(photoRow);
+            }
+          });
+          return;
+        }
+
+        if (folder === 'suffering') {
+          messages[folder].forEach(msg => {
+            if (msg.text || msg.title) {
+              const div = document.createElement('div');
+              div.className = 'message';
+              div.innerHTML = `<h3>${msg.title || ''}</h3><p>${msg.text || ''}</p>`;
+              container.appendChild(div);
+            }
+            if (msg.image1 && msg.image2 && msg.image3) {
+              const photoRow = document.createElement('div');
+              photoRow.className = 'photo-row-suffering';
+              [msg.image1, msg.image2, msg.image3].forEach(src => {
+                const img = document.createElement('img');
+                img.src = src.trim();
+                photoRow.appendChild(img);
+              });
+              container.appendChild(photoRow);
+            }
+          });
+          return;
+        }
+
+        if (folder === 'achievements') {
+          messages[folder].forEach(msg => {
+            if (msg.text || msg.title) {
+              const div = document.createElement('div');
+              div.className = 'message';
+              div.innerHTML = `<h3>${msg.title || ''}</h3><p>${msg.text || ''}</p>`;
+              container.appendChild(div);
+            }
+            if (msg.image) {
+              const img = document.createElement('img');
+              img.src = msg.image.trim();
+              container.appendChild(img);
+            }
+          });
+          return;
+        }
+
+        messages[folder].forEach(msg => {
+          if (msg.text || msg.title) {
+            const div = document.createElement('div');
+            div.className = 'message';
+            div.innerHTML = `<h3>${msg.title || ''}</h3><p>${msg.text || ''}</p>`;
+            container.appendChild(div);
+          }
+          if (msg.image && folder !== 'main') {
+            const img = document.createElement('img');
+            img.src = msg.image.trim();
+            container.appendChild(img);
+          }
+        });
+      }
+    }
+
+    function itemToTitle(key) {
+      const titles = {
+        main: "Главная",
+        trips: "Поездки",
+        books: "Книги",
+        movies: "Фильмы",
+        games: "Игры",
+        series: "Сериалы",
+        it: "Смысл IT",
+        suffering: "Страдания",
+        achievements: "Ачивки",
+        pacman: "Игра",
+        secret: "Доступ"
+      };
+      return titles[key] || key;
+    }
+
+    // --- PAC-MAN GAME ---
+    let gameActive = false;
+    let playerX = 1;
+    let playerY = 1;
+    let dots = 0;
+    let ghosts = [];
+
+    const maze = [
+      "████████████████████",
+      "█·················█",
+      "█·███·███·███·███·█",
+      "█·█···█···█···█···█",
+      "█·█·███·█·███·█·███",
+      "█·················█",
+      "████████████████████"
+    ];
+
+    function countDots() {
+      let count = 0;
+      for (let row of maze) {
+        for (let ch of row) {
+          if (ch === '·') count++;
+        }
+      }
+      return count;
+    }
+
+    function renderPacmanGame(container) {
+      gameActive = true;
+      dots = countDots();
+      playerX = 1;
+      playerY = 1;
+      ghosts = [{x: 18, y: 1}, {x: 18, y: 5}];
+
+      const gameDiv = document.createElement('div');
+      gameDiv.className = 'message';
+      gameDiv.innerHTML = `<h3>Игра: PAC-MAN</h3><p>Соберите все точки (·), избегая призраков (X)!<br>Управление: ← → ↑ ↓ или WASD</p>`;
+      container.appendChild(gameDiv);
+
+      const canvas = document.createElement('pre');
+      canvas.id = 'gameCanvas';
+      canvas.tabIndex = 0;
+      canvas.style.outline = 'none';
+      container.appendChild(canvas);
+
+      drawGame(canvas);
+
+      canvas.focus();
+      canvas.addEventListener('keydown', handleKeyPress);
+    }
+
+    function drawGame(canvas) {
+      let display = '';
+      for (let y = 0; y < maze.length; y++) {
+        let line = '';
+        for (let x = 0; x < maze[y].length; x++) {
+          if (x === playerX && y === playerY) {
+            line += '●';
+          } else if (ghosts.some(g => g.x === x && g.y === y)) {
+            line += 'X';
+          } else {
+            line += maze[y][x];
+          }
+        }
+        display += line + '\n';
+      }
+      canvas.textContent = display;
+    }
+
+    function handleKeyPress(e) {
+      if (!gameActive) return;
+
+      let newX = playerX;
+      let newY = playerY;
+
+      switch(e.key) {
+        case 'ArrowLeft': case 'a': case 'A': newX--; break;
+        case 'ArrowRight': case 'd': case 'D': newX++; break;
+        case 'ArrowUp': case 'w': case 'W': newY--; break;
+        case 'ArrowDown': case 's': case 'S': newY++; break;
+        default: return;
+      }
+
+      // Проверка стен
+      if (newY >= 0 && newY < maze.length && newX >= 0 && newX < maze[0].length) {
+        if (maze[newY][newX] !== '█') {
+          playerX = newX;
+          playerY = newY;
+        }
+      }
+
+      // Проверка призраков
+      if (ghosts.some(g => g.x === playerX && g.y === playerY)) {
+        gameOver();
+        return;
+      }
+
+      // Проверка точки
+      if (maze[playerY][playerX] === '·') {
+        // Заменяем точку на пустое место (виртуально)
+        dots--;
+        if (dots <= 0) {
+          gameWin();
+          return;
+        }
+      }
+
+      drawGame(document.getElementById('gameCanvas'));
+
+      // Движение призраков (простое)
+      moveGhosts();
+    }
+
+    function moveGhosts() {
+      ghosts.forEach(ghost => {
+        const directions = [
+          {dx: -1, dy: 0},
+          {dx: 1, dy: 0},
+          {dx: 0, dy: -1},
+          {dx: 0, dy: 1}
+        ];
+        const valid = directions.filter(dir => {
+          const nx = ghost.x + dir.dx;
+          const ny = ghost.y + dir.dy;
+          return ny >= 0 && ny < maze.length && nx >=0 && nx < maze[0].length && maze[ny][nx] !== '█';
+        });
+        if (valid.length > 0) {
+          const move = valid[Math.floor(Math.random() * valid.length)];
+          ghost.x += move.dx;
+          ghost.y += move.dy;
+        }
+      });
+    }
+
+    function gameOver() {
+      gameActive = false;
+      const container = document.getElementById('main-content');
+      container.innerHTML = `
+        <div class="message">
+          <h3>ERROR 404: SYSTEM FAILURE</h3>
+          <p style="color:#f00;">
+            ВЫ ПРОИГРАЛИ.<br>
+            НО НИЧЕГО СТРАШНОГО — ПОПРОБУЙТЕ ЕЩЁ РАЗ.
+          </p>
+          <button class="button" onclick="loadMessages('pacman')">🔄 ПОВТОРИТЬ</button>
+        </div>
+      `;
+      setupMenuListeners(); // обновляем слушатели
+    }
+
+    function gameWin() {
+      gameActive = false;
+      secretUnlocked = true;
+
+      // Добавляем секретную папку в меню
+      const menu = document.getElementById('menuList');
+      const secretItem = document.createElement('li');
+      secretItem.textContent = 'Доступ';
+      secretItem.setAttribute('data-folder', 'secret');
+      secretItem.style.color = '#0f0';
+      secretItem.style.border = '1px solid #0f0';
+      menu.appendChild(secretItem);
+
+      // Загружаем секрет
+      loadMessages('secret');
+      setupMenuListeners(); // обновляем слушатели
+    }
+
+    // Звук кнопок
+    document.addEventListener('click', function(e) {
+      if (e.target.classList.contains('button')) {
+        if (clickSound) {
+          clickSound.currentTime = 0;
+          clickSound.play().catch(e => console.log("Не удалось воспроизвести звук:", e));
+        }
+      }
+    });
+
+    // Музыка
+    musicToggle.addEventListener('click', () => {
+      if (music.paused) {
+        music.play().catch(e => {
+          alert("Браузер требует взаимодействия с пользователем для воспроизведения аудио.");
+          console.log("Ошибка воспроизведения:", e);
+        });
+        musicToggle.textContent = '⏸️ ВЫКЛЮЧИТЬ МУЗЫКУ';
+      } else {
+        music.pause();
+        musicToggle.textContent = '▶️ ВКЛЮЧИТЬ МУЗЫКУ';
+      }
+    });
+
+    // Инициализация
+    setupMenuListeners();
+    loadMessages('main');
+  </script>
+</body>
+</html>
